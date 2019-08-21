@@ -2,7 +2,7 @@
   "name": "react-native-video-controller",
   "version": "0.0.0",
   "description": "a simple yet customizable controller for react-native-video",
-  "main": "index.js",
+  "main": "./docs/src/readme.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
