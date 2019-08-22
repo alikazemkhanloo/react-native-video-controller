@@ -35,9 +35,6 @@ const styles = StyleSheet.create({
 });
 
 export type State = {
-  /**
-   * the current source object
-   */
   source: { uri: string },
   controls_hidden: boolean,
   currentTime: number,
@@ -60,21 +57,15 @@ type Props = {
   /**
    * render a custom play/pause component
    */
-  renderPlayPause?: (state: typeof Animated.Value) => React.Node,
+  renderPlayPause?: (typeof Animated.Value) => React.Node,
   /**
    * render component for the top right
    */
-  renderTopRight: ({
-    subtitles: Array<any>,
-    resolutions: Array<any>
-  }) => React.Node,
+  renderTopRight: State => React.Node,
   /**
    * render component for the top left
    */
-  renderTopLeft: ({
-    subtitles: Array<any>,
-    resolutions: Array<any>
-  }) => React.Node,
+  renderTopLeft: State => React.Node,
   /**
    * render component for loading
    */
@@ -82,8 +73,73 @@ type Props = {
   /**
    * render component for error
    */
-  renderError: () => React.Node
+  renderError: () => React.Node,
+  bottom: State => React.Node
 };
+/**
+ * The main component to play video with default configs.
+ *
+ * ## Usage
+ * ```js
+ * import VideoPlayer from "react-native-video-controller";
+ * render(){
+ *   return(
+ *    <VideoPlayer
+ *      source={{ uri: source }} // Can be a URL or a local file.
+ *      ref={ref => {
+ *        this.player = ref;
+ *      }} // Store reference
+ *      style={[styles.videoContainerStyle, { overflow: "hidden" }]}
+ *      videoStyle={styles.videoStyle}
+ *      // style={styles.backgroundVideo}
+ *      resizeMode="contain"
+ *      // controls={fullScreen}
+ *      bottom={this.bottom} />
+ *   )
+ * }
+ *
+ * ```
+ *
+ * *Note:* the prop `bottom` and `renderTop*` should be a function that
+ * gets the state of the component as argument and returns a react component
+ *
+ *
+ * ```jsx
+ * type State = {
+ * source: { uri: string },
+ * controls_hidden: boolean,
+ * currentTime: number,
+ * seekableDuration: number,
+ * show_video: boolean,
+ * playState: PLAYING | PAUSED | LOADING | ERROR,
+ * resolutions: Array<number>,
+ * paused: boolean,
+ * fullscreen: boolean,
+ * subtitles: Array<any>,
+ * currentSub: string,
+ * selectedVideoTrackHeight: number
+ * };
+ * ```
+ * where playing state is a constant string that can be imported like:
+ *
+ * ```js
+ * import { PlayState } from "react-native-video-controller";
+ * ...
+ * if( this.state.playState === PlayState.PAUSED){
+ *  console.log('the video is paused! ')
+ * }
+ *
+ * ```
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 class VideoPlayer extends React.Component<Props, State> {
   _menu = {};
 
@@ -104,8 +160,10 @@ class VideoPlayer extends React.Component<Props, State> {
 
   /**
    * converts second to human readable format as hh:mm:ss
+   * @param seconds number of second to convert
+   * @returns a human readable format of the time
    */
-  static secondToTime = (allseconds: number) => {
+  static secondToTime(seconds: number): string {
     const hour = Math.floor(allseconds / 3600);
     const residual_from_hour = allseconds % 3600;
 
@@ -118,7 +176,7 @@ class VideoPlayer extends React.Component<Props, State> {
     let output = `${minute}:${second}`;
     hour && (output = `${hour}${output}`);
     return output;
-  };
+  }
 
   constructor(props) {
     super(props);
