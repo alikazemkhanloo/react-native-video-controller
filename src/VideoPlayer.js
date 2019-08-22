@@ -50,17 +50,35 @@ export type State = {
 };
 
 type Props = {
-  source: { uri: string },
+  /**
+   * video source to play, will be passed to react-native-video
+   */
+  source: any,
+  /**
+   * render a custom play/pause component
+   */
   renderPlayPause?: (state: typeof Animated.Value) => React.Node,
+  /**
+   * render component for the top right
+   */
   renderTopRight: ({
     subtitles: Array<any>,
     resolutions: Array<any>
   }) => React.Node,
+  /**
+   * render component for the top left
+   */
   renderTopLeft: ({
     subtitles: Array<any>,
     resolutions: Array<any>
   }) => React.Node,
+  /**
+   * render component for loading
+   */
   renderLoading?: () => React.Node,
+  /**
+   * render component for error
+   */
   renderError: () => React.Node
 };
 class VideoPlayer extends React.Component<Props, State> {
@@ -79,6 +97,24 @@ class VideoPlayer extends React.Component<Props, State> {
       <PlayPause state={state} />
     ),
     renderLoading: () => <Loading />
+  };
+
+  /**
+   * converts second to human readable format as hh:mm:ss
+   */
+  static secondToTime = (allseconds: number) => {
+    const hour = Math.floor(allseconds / 3600);
+    const residual_from_hour = allseconds % 3600;
+
+    let minute = Math.floor(residual_from_hour / 60);
+    let second = Math.floor(residual_from_hour % 60);
+
+    minute = `${minute}`.padStart(2, "0");
+    second = `${second}`.padStart(2, "0");
+
+    let output = `${minute}:${second}`;
+    hour && (output = `${hour}${output}`);
+    return output;
   };
 
   constructor(props) {
@@ -129,25 +165,25 @@ class VideoPlayer extends React.Component<Props, State> {
     };
   }
 
-  componentDidMount = () => {
+  componentDidMount() {
     Orientation.addOrientationListener(this._orientationDidChange);
-  };
+  }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     Orientation.removeOrientationListener(this._orientationDidChange);
-  };
+  }
 
   _orientationDidChange = orientation => {
-    this.setFullScreen(orientation === "LANDSCAPE");
+    this._setFullScreen(orientation === "LANDSCAPE");
   };
 
-  renderTopRight = ({ subtitles }) => {
+  _renderTopRight = ({ subtitles }) => {
     const filtered = subtitles.filter(i => !!i.language);
     const items = [{ title: "خاموش" }, ...filtered];
     return <Menu title="زیرنویس" onItemPress={this.setSub} items={items} />;
   };
 
-  renderTopLeft = ({ resolutions }) => {
+  _renderTopLeft = ({ resolutions }) => {
     const items = resolutions.map(i => ({
       title: String(i),
       value: i
@@ -162,31 +198,13 @@ class VideoPlayer extends React.Component<Props, State> {
     );
   };
 
-  renderError = () => (
+  _renderError = () => (
     <TouchableWithoutFeedback onPress={this.reload}>
       <Text style={{ color: "#fff" }}>خطا، تلاش مجدد</Text>
     </TouchableWithoutFeedback>
   );
 
-  /**
-   * converts second to human readable format as hh:mm:ss
-   */
-  secondToTime = (allseconds: number) => {
-    const hour = Math.floor(allseconds / 3600);
-    const residual_from_hour = allseconds % 3600;
-
-    let minute = Math.floor(residual_from_hour / 60);
-    let second = Math.floor(residual_from_hour % 60);
-
-    minute = `${minute}`.padStart(2, "0");
-    second = `${second}`.padStart(2, "0");
-
-    let output = `${minute}:${second}`;
-    hour && (output = `${hour}${output}`);
-    return output;
-  };
-
-  slidingComplete = value => {
+  _slidingComplete = value => {
     const { playState } = this.state;
     this.player.seek(value);
     if (playState === PLAYING) {
@@ -194,40 +212,26 @@ class VideoPlayer extends React.Component<Props, State> {
     }
   };
 
-  slidingStart = () => {
+  _slidingStart = () => {
     clearTimeout(this.timeout);
   };
 
-  setMenuRef = (name, ref) => {
-    this._menu[name] = ref;
+  /**
+   * changes the current resolution of the video
+   */
+  setResolution = height => {
+    this.setState({ selectedVideoTrackHeight: height });
   };
 
-  hideMenu = name => {
-    this._menu[name].hide();
+  /**
+   * changes the current subtitle
+   *
+   */
+  setSub = subtitle => {
+    this.setState({ currentSub: subtitle.title });
   };
 
-  showMenu = name => {
-    this._menu[name].show();
-  };
-
-  setResolution = value => {
-    this.setState({ selectedVideoTrackHeight: value });
-  };
-
-  setSub = item => {
-    this.setState({ currentSub: item.title });
-  };
-
-  cleanName = name => {
-    if (!name) {
-      return "";
-    }
-    const name_splitted = name.split(/:(.+)/, 2);
-    const out = name_splitted[name_splitted.length - 1];
-    return out;
-  };
-
-  handleOnLoad = payload => {
+  _handleOnLoad = payload => {
     const { textTracks, videoTracks } = payload;
     const resolutions = videoTracks.map(i => i.height);
     // resolutions.unshift(0);
@@ -236,18 +240,21 @@ class VideoPlayer extends React.Component<Props, State> {
     this.hide_controls_with_timeout();
   };
 
-  handleLoadStart = () => {
+  _handleLoadStart = () => {
     clearTimeout(this.timeout);
     this.showControlsAnimation.start();
     this.setState({ playState: LOADING });
   };
 
-  handleError = () => {
+  _handleError = () => {
     clearTimeout(this.timeout);
     this.showControlsAnimation.start();
     this.setState({ playState: ERROR });
   };
 
+  /**
+   * play the video
+   */
   play = () => {
     this.hide_controls_with_timeout();
     // this.animation.play(0, 33);
@@ -260,6 +267,9 @@ class VideoPlayer extends React.Component<Props, State> {
     this.setState({ playState: PLAYING });
   };
 
+  /**
+   * pause the video
+   */
   pause = () => {
     clearTimeout(this.timeout);
     this.playpause.setValue(0.5);
@@ -271,7 +281,10 @@ class VideoPlayer extends React.Component<Props, State> {
     this.setState({ playState: PAUSED });
   };
 
-  changePlaybackState = () => {
+  /**
+   * toggle palyback state
+   */
+  togglePlayback = () => {
     const { playState } = this.state;
     if (playState === PLAYING) {
       this.pause();
@@ -280,12 +293,16 @@ class VideoPlayer extends React.Component<Props, State> {
     }
   };
 
-  setFullScreen = value => {
+  _setFullScreen = value => {
     this.setState({
       fullscreen: value
     });
   };
 
+  /**
+   * reload the video (for example in case of an error) this will actually rerender
+   * the component.
+   */
   reload = () => {
     this.setState({ show_video: false }, () => {
       setTimeout(() => {
@@ -294,6 +311,12 @@ class VideoPlayer extends React.Component<Props, State> {
     });
   };
 
+  /**
+   * toggles fullscreen mode.
+   * in full screen mode the `bottom` prop will be rendered over the player,
+   * and the player will positioned absolutely.
+   *
+   */
   toggleFullScreen = () => {
     const { fullscreen } = this.state;
     if (fullscreen) {
@@ -304,6 +327,9 @@ class VideoPlayer extends React.Component<Props, State> {
     }
   };
 
+  /**
+   * toggle controls on the screen
+   */
   toggleControls = () => {
     const { controls_hidden, playState } = this.state;
     if (controls_hidden) {
@@ -318,6 +344,9 @@ class VideoPlayer extends React.Component<Props, State> {
     this.setState({ controls_hidden: !controls_hidden });
   };
 
+  /**
+   * hide controls after 5s delay
+   */
   hide_controls_with_timeout = () => {
     // const { playState } = this.state;
     this.timeout = setTimeout(() => {
@@ -326,7 +355,7 @@ class VideoPlayer extends React.Component<Props, State> {
     }, 5000);
   };
 
-  onEnd = () => {
+  _onEnd = () => {
     this.player.seek(0);
     this.showControlsAnimation.start();
     this.setState({ playState: PAUSED });
@@ -398,12 +427,12 @@ class VideoPlayer extends React.Component<Props, State> {
                 type: currentSub ? "title" : "disabled",
                 value: currentSub
               }}
-              onLoad={this.handleOnLoad}
-              onLoadStart={this.handleLoadStart}
+              onLoad={this._handleOnLoad}
+              onLoadStart={this._handleLoadStart}
               paused={playState !== PLAYING}
               fullscreen={fullscreen}
-              onEnd={this.onEnd}
-              onError={this.handleError}
+              onEnd={this._onEnd}
+              onError={this._handleError}
             />
           )}
           <TouchableWithoutFeedback
@@ -446,12 +475,12 @@ class VideoPlayer extends React.Component<Props, State> {
                   <View style={styles.topCorner}>
                     {renderTopRight
                       ? renderTopRight(this.state)
-                      : this.renderTopRight(this.state)}
+                      : this._renderTopRight(this.state)}
                   </View>
                   <View style={styles.topCorner}>
                     {renderTopLeft
                       ? renderTopLeft(this.state)
-                      : this.renderTopLeft(this.state)}
+                      : this._renderTopLeft(this.state)}
                   </View>
                 </ImageBackground>
               </Animated.View>
@@ -472,15 +501,13 @@ class VideoPlayer extends React.Component<Props, State> {
                     {playState === LOADING ? (
                       renderLoading()
                     ) : playState === PLAYING || playState === PAUSED ? (
-                      <TouchableWithoutFeedback
-                        onPress={this.changePlaybackState}
-                      >
+                      <TouchableWithoutFeedback onPress={this.togglePlayback}>
                         <View>{renderPlayPause(this.playpause)}</View>
                       </TouchableWithoutFeedback>
                     ) : playState === ERROR && renderError ? (
                       renderError()
                     ) : (
-                      this.renderError()
+                      this._renderError()
                     )}
                   </Animated.View>
                 </View>
@@ -502,24 +529,24 @@ class VideoPlayer extends React.Component<Props, State> {
                   }}
                 >
                   <Text style={styles.time}>
-                    {this.secondToTime(currentTime)}
+                    {VideoPlayer.secondToTime(currentTime)}
                   </Text>
                   <Slider
                     style={{ flex: 1 }}
                     minimumTrackTintColor="#fff"
                     thumbTintColor="#fff"
                     ballon={value => {
-                      return this.secondToTime(value);
+                      return VideoPlayer.secondToTime(value);
                     }}
                     progress={this.currentTime}
                     min={new Reanimated.Value(0)}
                     cache={this.playableDuration}
                     max={this.seekableDuration}
-                    onSlidingStart={this.slidingStart}
-                    onSlidingComplete={this.slidingComplete}
+                    onSlidingStart={this._slidingStart}
+                    onSlidingComplete={this._slidingComplete}
                   />
                   <Text style={styles.time}>
-                    {this.secondToTime(seekableDuration)}
+                    {VideoPlayer.secondToTime(seekableDuration)}
                   </Text>
                   <TouchableWithoutFeedback onPress={this.toggleFullScreen}>
                     <Icon

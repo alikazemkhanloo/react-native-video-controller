@@ -1,7 +1,7 @@
 # Logs
 *.log
 npm-debug.log
-
+.vscode
 # Runtime data
 tmp
 build

@@ -16,7 +16,9 @@ module.exports = {
       type: "component",
       file: "../../react-native-reanimated-slider/src/Slider.js",
       group: "SeekBar"
-    }
+    },
+    { type: "component", file: "../src/VideoPlayer.js" },
+    { type: "component", file: "../src/PlayPause.js" }
   ],
   output: "./src"
 };
