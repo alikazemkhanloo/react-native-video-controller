@@ -12,7 +12,7 @@
    <span class="token operator">&lt;</span>VideoPlayer
      source<span class="token operator">=</span><span class="token punctuation">{</span><span class="token punctuation">{</span> uri<span class="token punctuation">:</span> source <span class="token punctuation">}</span><span class="token punctuation">}</span> <span class="token comment">// Can be a URL or a local file.</span>
      ref<span class="token operator">=</span><span class="token punctuation">{</span><span class="token parameter">ref</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
-       <span class="token keyword">this</span><span class="token punctuation">.</span>player <span class="token operator">=</span> ref<span class="token punctuation">;</span>
+       <span class="token keyword">this</span><span class="token punctuation">.</span>videoplayer<span class="token operator">=</span> ref<span class="token punctuation">;</span>
      <span class="token punctuation">}</span><span class="token punctuation">}</span> <span class="token comment">// Store reference</span>
      style<span class="token operator">=</span><span class="token punctuation">{</span><span class="token punctuation">[</span>styles<span class="token punctuation">.</span>videoContainerStyle<span class="token punctuation">,</span> <span class="token punctuation">{</span> overflow<span class="token punctuation">:</span> <span class="token string">"hidden"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">}</span>
      videoStyle<span class="token operator">=</span><span class="token punctuation">{</span>styles<span class="token punctuation">.</span>videoStyle<span class="token punctuation">}</span>
@@ -46,7 +46,8 @@ selectedVideoTrackHeight: number
  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'the video is paused! '</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 </code></pre>
-</div><h2>Props</h2><div class="PropInfo_p1eats2g"><a name="source" href="#source" class="PropLabel_psi127e"><code>source</code> (required)</a><div class="PropItem_pwdtv5j"><span>Type: </span><code>any</code></div><div class="PropItem_pwdtv5j MarkdownContent_m3ctz2y"><p>video source to play, will be passed to react-native-video</p>
+<p>To access the underlying player's methods use <code>player</code> attribute, ie:</p>
+<pre><code>this.videoplayer.player.seek(12)</code></pre></div><h2>Props</h2><div class="PropInfo_p1eats2g"><a name="source" href="#source" class="PropLabel_psi127e"><code>source</code> (required)</a><div class="PropItem_pwdtv5j"><span>Type: </span><code>any</code></div><div class="PropItem_pwdtv5j MarkdownContent_m3ctz2y"><p>video source to play, will be passed to react-native-video</p>
 </div></div><div class="PropInfo_p1eats2g"><a name="renderPlayPause" href="#renderPlayPause" class="PropLabel_psi127e"><code>renderPlayPause</code></a><div class="PropItem_pwdtv5j"><span>Type: </span><code>(typeof Animated.Value) =&gt; React.Node</code></div><div class="PropItem_pwdtv5j"><span>Default value: </span><code>(state: typeof Animated.Value) =&gt; (
   &lt;PlayPause state={state} /&gt;
 )</code></div><div class="PropItem_pwdtv5j MarkdownContent_m3ctz2y"><p>render a custom play/pause component</p>

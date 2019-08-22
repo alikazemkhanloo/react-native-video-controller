@@ -87,7 +87,7 @@ type Props = {
  *    <VideoPlayer
  *      source={{ uri: source }} // Can be a URL or a local file.
  *      ref={ref => {
- *        this.player = ref;
+ *        this.videoplayer= ref;
  *      }} // Store reference
  *      style={[styles.videoContainerStyle, { overflow: "hidden" }]}
  *      videoStyle={styles.videoStyle}
@@ -132,8 +132,10 @@ type Props = {
  * ```
  *
  *
- *
- *
+ * To access the underlying player's methods use `player` attribute, ie:
+ * ```
+ * this.videoplayer.player.seek(12)
+ * ```
  *
  *
  *
