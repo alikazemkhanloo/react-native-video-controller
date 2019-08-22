@@ -32,6 +32,7 @@
     "react-native-video": "^5.0.0"
   },
   "dependencies": {
+    "react-native-material-menu": "^0.6.7",
     "react-native-reanimated-slider": "^1.x.x"
   }
 }
