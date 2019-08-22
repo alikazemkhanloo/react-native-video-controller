@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
 });
 
 export type State = {
+  /**
+   * the current source object
+   */
   source: { uri: string },
   controls_hidden: boolean,
   currentTime: number,
@@ -84,7 +87,7 @@ type Props = {
 class VideoPlayer extends React.Component<Props, State> {
   _menu = {};
 
-  static getDerivedStateFromProps(props, state) {
+  static getDerivedStateFromProps(props: Props, state: State) {
     if (props.source !== state.source) {
       return {
         source: props.source
@@ -219,7 +222,7 @@ class VideoPlayer extends React.Component<Props, State> {
   /**
    * changes the current resolution of the video
    */
-  setResolution = height => {
+  setResolution = (height: number) => {
     this.setState({ selectedVideoTrackHeight: height });
   };
 
