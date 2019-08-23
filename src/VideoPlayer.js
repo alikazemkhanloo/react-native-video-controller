@@ -55,7 +55,10 @@ type Props = {
    */
   source: any,
   /**
-   * render a custom play/pause component
+   * render a custom play/pause component. the argument is an AnimatedValue that will be animated from 0 to 0.5 when translating 
+   * from PAUSE to PLAY, and from 0.5 to 1 when translating from PLAY to PAUSE. this way is useful if you want to
+   * animate different parts of a lottie animation for play/pause. also you can interpolate the value to get a monotonic value from
+   * PLAY to PAUSE.
    */
   renderPlayPause?: (typeof Animated.Value) => React.Node,
   /**
@@ -166,8 +169,8 @@ class VideoPlayer extends React.Component<Props, State> {
    * @returns a human readable format of the time
    */
   static secondToTime(seconds: number): string {
-    const hour = Math.floor(allseconds / 3600);
-    const residual_from_hour = allseconds % 3600;
+    const hour = Math.floor(seconds / 3600);
+    const residual_from_hour = seconds % 3600;
 
     let minute = Math.floor(residual_from_hour / 60);
     let second = Math.floor(residual_from_hour % 60);
