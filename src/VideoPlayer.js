@@ -55,7 +55,7 @@ type Props = {
    */
   source: any,
   /**
-   * render a custom play/pause component. the argument is an AnimatedValue that will be animated from 0 to 0.5 when translating 
+   * render a custom play/pause component. the argument is an AnimatedValue that will be animated from 0 to 0.5 when translating
    * from PAUSE to PLAY, and from 0.5 to 1 when translating from PLAY to PAUSE. this way is useful if you want to
    * animate different parts of a lottie animation for play/pause. also you can interpolate the value to get a monotonic value from
    * PLAY to PAUSE.
@@ -157,8 +157,8 @@ class VideoPlayer extends React.Component<Props, State> {
   }
 
   static defaultProps = {
-    renderPlayPause: (state: typeof Animated.Value) => (
-      <PlayPause state={state} />
+    renderPlayPause: (progress: typeof Animated.Value) => (
+      <PlayPause progress={progress} />
     ),
     renderLoading: () => <Loading />
   };

@@ -40,4 +40,4 @@ this libarary depends on:
 
 make sure install and link these packages.
 # Docs and Usage
-documnetation is here
+documnetation is created with [component-docs](https://github.com/callstack/component-docs) and lives [here](http://alikazemkhanloo.github.io/react-native-video-controller/src/video-player.html)
