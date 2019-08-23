@@ -1,8 +1,11 @@
-<div style="text-align:center">
-  <div><img src="./docs/images/logo.png" /></div>
+<p align="center">
+  <img src="./docs/images/logo.png" />
+</p>
+<p align="center">
   <strong>react-native-video-controller</strong>
-  <p>a controller for <code>react-native-video</code> </p>
-</div>
+</p>
+<p align="center">a controller for <code>react-native-video</code> </p>
+
 
 
 
