@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Animated,
+  Dimensions,
   ImageBackground
 } from "react-native";
 import Video from "react-native-video";
@@ -33,6 +34,12 @@ const styles = StyleSheet.create({
     padding: 3
   }
 });
+
+function getSmallAxis() {
+  const { width, height } = Dimensions.get("screen");
+  const s = width < height ? width : height;
+  return s;
+}
 
 export type State = {
   source: { uri: string },
@@ -224,6 +231,7 @@ class VideoPlayer extends React.Component<Props, State> {
       playState: LOADING,
       resolutions: [],
       paused: false,
+      ratio: 9 / 16,
       fullscreen: initialOrientation === "LANDSCAPE",
       subtitles: [],
       currentSub: "خاموش",
@@ -448,14 +456,16 @@ class VideoPlayer extends React.Component<Props, State> {
       source,
       playState,
       show_video,
+      ratio,
       currentSub
     } = this.state;
+    const playerHeight = getSmallAxis() * ratio;
     return (
       <View style={{ flex: 1 }}>
         <View
           style={[
             { backgroundColor: "#000" },
-            fullscreen ? StyleSheet.absoluteFillObject : style
+            fullscreen ? StyleSheet.absoluteFillObject : [{ height: playerHeight },style]
           ]}
         >
           {show_video && (
@@ -484,7 +494,11 @@ class VideoPlayer extends React.Component<Props, State> {
               }}
               {...rest}
               source={source}
-              style={fullscreen ? StyleSheet.absoluteFillObject : videoStyle}
+              style={
+                fullscreen
+                  ? StyleSheet.absoluteFillObject
+                  : [{ height: playerHeight }, videoStyle]
+              }
               selectedVideoTrack={{
                 type: selectedVideoTrackHeight ? "resolution" : "auto",
                 value: selectedVideoTrackHeight
