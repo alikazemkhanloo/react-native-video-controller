@@ -7,6 +7,7 @@ import {
   View,
   Text,
   StyleSheet,
+  I18nManager,
   TouchableWithoutFeedback,
   Animated,
   Dimensions,
@@ -465,7 +466,9 @@ class VideoPlayer extends React.Component<Props, State> {
         <View
           style={[
             { backgroundColor: "#000" },
-            fullscreen ? StyleSheet.absoluteFillObject : [{ height: playerHeight },style]
+            fullscreen
+              ? StyleSheet.absoluteFillObject
+              : [{ height: playerHeight }, style]
           ]}
         >
           {show_video && (
@@ -545,7 +548,7 @@ class VideoPlayer extends React.Component<Props, State> {
                       opacity: 1,
                       height: 50,
                       flex: 1,
-                      flexDirection: "row",
+                      flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
                       alignItems: "center",
                       justifyContent: "space-between"
                     },
@@ -553,14 +556,14 @@ class VideoPlayer extends React.Component<Props, State> {
                   ]}
                 >
                   <View style={styles.topCorner}>
-                    {renderTopRight
-                      ? renderTopRight(this.state)
-                      : this._renderTopRight(this.state)}
-                  </View>
-                  <View style={styles.topCorner}>
                     {renderTopLeft
                       ? renderTopLeft(this.state)
                       : this._renderTopLeft(this.state)}
+                  </View>
+                  <View style={styles.topCorner}>
+                    {renderTopRight
+                      ? renderTopRight(this.state)
+                      : this._renderTopRight(this.state)}
                   </View>
                 </ImageBackground>
               </Animated.View>
@@ -604,7 +607,7 @@ class VideoPlayer extends React.Component<Props, State> {
                   style={{
                     opacity: 1,
                     height: 50,
-                    flexDirection: "row",
+                    flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
                     alignItems: "center"
                   }}
                 >
