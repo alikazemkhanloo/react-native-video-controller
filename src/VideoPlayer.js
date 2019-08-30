@@ -187,7 +187,7 @@ class VideoPlayer extends React.Component<Props, State> {
     second = `${second}`.padStart(2, "0");
 
     let output = `${minute}:${second}`;
-    hour && (output = `${hour}${output}`);
+    hour && (output = `${hour}:${output}`);
     return output;
   }
 

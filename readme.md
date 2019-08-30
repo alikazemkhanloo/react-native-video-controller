@@ -30,14 +30,15 @@ There are two controller for the playing the video, but they are not customizabl
 [![screenshot](docs/images/sc3.jpeg)](docs/images/sc.3jpeg) -->
 
 # Peer Dependencies
-this libarary depends on:
+this library depends on:
 
-* `react-native-reanimated` if using the default slider.
-* `react-native-gesture-handler` if using the default slider.
+* `react-native-reanimated` if using the default slider,no need if you have your own slider.
+* `react-native-gesture-handler` if using the default slider,no need if you have your own slider.
 * `react-native-orientation` to handle rotations.
+* `react-native-paper` to use the Menu component, no need if you have your own menu.
 * `react-native-video` to play videos.
   
 
 make sure install and link these packages.
 # Docs and Usage
-documnetation is created with [component-docs](https://github.com/callstack/component-docs) and lives [here](http://alikazemkhanloo.github.io/react-native-video-controller/src/video-player.html)
+documnetation is created with [component-docs](https://github.com/callstack/component-docs) and lives [here](http://alikazemkhanloo.github.io/react-native-video-controller/video-player.html)

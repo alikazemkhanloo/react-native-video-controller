@@ -1,9 +1,12 @@
 import React, { Component } from "react";
-import { View, Text, FlatList } from "react-native";
-import MaterialMenu, {
-  MenuItem,
-  MenuDivider
-} from "react-native-material-menu";
+import { View, FlatList } from "react-native";
+import {
+  Menu as PaperMenu,
+  Button,
+  Divider,
+  Text,
+  TouchableRipple
+} from "react-native-paper";
 
 type Props = {
   title: string,
@@ -14,8 +17,14 @@ type Props = {
 class Menu extends Component<Props> {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      visible: false
+    };
   }
+
+  _openMenu = () => this.setState({ visible: true });
+
+  _closeMenu = () => this.setState({ visible: false });
 
   renderSubtitle = ({ item }) => {
     const { title } = item;
@@ -23,14 +32,13 @@ class Menu extends Component<Props> {
     const name = this.cleanName(title);
     return (
       <View>
-        <MenuItem
+        <PaperMenu.Item
           onPress={() => {
             onItemPress(item);
-            this._menu.hide();
+            this._closeMenu();
           }}
-        >
-          {name}
-        </MenuItem>
+          title={name}
+        />
       </View>
     );
   };
@@ -46,25 +54,25 @@ class Menu extends Component<Props> {
 
   render() {
     const { title, items } = this.props;
+    const { visible } = this.state;
+
     return (
-      <MaterialMenu
-        ref={ref => {
-          this._menu = ref;
-        }}
-        button={
-          /* eslint-disable-next-line */
-          <Text style={{ color: "#fff" }} onPress={() => this._menu.show()}>
-            {title}
-          </Text>
+      <PaperMenu
+        visible={visible}
+        onDismiss={this._closeMenu}
+        anchor={
+          <TouchableRipple onPress={this._openMenu}>
+            <Text style={{ padding: 5 }}>{title}</Text>
+          </TouchableRipple>
         }
       >
         <FlatList
           data={items}
           renderItem={this.renderSubtitle}
-          ItemSeparatorComponent={() => <MenuDivider />}
-          keyExtractor={i => i.title}
+          ItemSeparatorComponent={() => <Divider />}
+          keyExtractor={(i, index) => `${i.title}-${index}`}
         />
-      </MaterialMenu>
+      </PaperMenu>
     );
   }
 }
