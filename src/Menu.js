@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { View, FlatList } from "react-native";
 import {
   Menu as PaperMenu,
-  Button,
   Divider,
   Text,
   TouchableRipple
