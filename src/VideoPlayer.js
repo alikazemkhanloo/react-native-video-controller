@@ -615,7 +615,7 @@ class VideoPlayer extends React.Component<Props, State> {
                     {VideoPlayer.secondToTime(currentTime)}
                   </Text>
                   <Slider
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, marginHorizontal:5 }}
                     minimumTrackTintColor="#fff"
                     thumbTintColor="#fff"
                     ballon={value => {
