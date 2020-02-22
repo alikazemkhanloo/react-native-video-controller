@@ -19,6 +19,10 @@ import Video from "react-native-video";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Orientation from "react-native-orientation-locker";
 import Reanimated from "react-native-reanimated";
+import {
+  TapGestureHandler,
+  State as GState
+} from "react-native-gesture-handler";
 import Slider from "react-native-reanimated-slider";
 import { PAUSED, PLAYING, LOADING, ERROR } from "./PlayState";
 import PlayPause from "./PlayPause";
@@ -63,6 +67,7 @@ type Props = {
    * video source to play, will be passed to react-native-video
    */
   source: any,
+
   /**
    * render a custom play/pause component. the argument is an AnimatedValue that will be animated from 0 to 0.5 when translating
    * from PAUSE to PLAY, and from 0.5 to 1 when translating from PLAY to PAUSE. this way is useful if you want to
@@ -70,23 +75,38 @@ type Props = {
    * PLAY to PAUSE.
    */
   renderPlayPause?: (typeof Animated.Value) => React.Node,
-    /**
-     * render component for the top right
-     */
-    renderTopRight: State => React.Node,
-      /**
-       * render component for the top left
-       */
-      renderTopLeft: State => React.Node,
-        /**
-         * render component for loading
-         */
-        renderLoading ?: () => React.Node,
-        /**
-         * render component for error
-         */
-        renderError: () => React.Node,
-          bottom: State => React.Node
+
+  /**
+   * render component for the top right
+   */
+  renderTopRight: State => React.Node,
+
+  /**
+   * render component for the top left
+   */
+  renderTopLeft: State => React.Node,
+
+  /**
+   * render component for loading
+   */
+  renderLoading?: () => React.Node,
+
+  /**
+   * render component for error
+   */
+  renderError: () => React.Node,
+
+  /**
+   * function called when the internal Video component's
+   * onProgress is called
+   */
+  onProgress: ({
+    currentTime: number,
+    playableDuration: number,
+    seekableDuration: number
+  }) => void,
+
+  bottom: State => React.Node
 };
 /**
  * The main component to play video with default configs.
@@ -196,6 +216,8 @@ class VideoPlayer extends React.Component<Props, State> {
     super(props);
     // firebase.admob().openDebugMenu();
     const initialOrientation = Orientation.getInitialOrientation();
+    this._doubleTapRightRef = React.createRef();
+    this._doubleTapLeftRef = React.createRef();
     this.playpause = new Animated.Value(0.5);
     this.currentTime = new Reanimated.Value(0);
     this.playableDuration = new Reanimated.Value(0);
@@ -243,15 +265,17 @@ class VideoPlayer extends React.Component<Props, State> {
 
   componentDidMount() {
     Orientation.addOrientationListener(this._orientationDidChange);
-    this._backHandler = BackHandler.addEventListener('hardwareBackPress', this._handleBackPress);
+    this._backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      this._handleBackPress
+    );
   }
 
   componentWillUnmount() {
     Orientation.removeOrientationListener(this._orientationDidChange);
     Orientation.lockToPortrait();
     Orientation.unlockAllOrientations();
-    this._backHandler.remove()
-
+    this._backHandler.remove();
   }
 
   _handleBackPress = () => {
@@ -261,9 +285,12 @@ class VideoPlayer extends React.Component<Props, State> {
       return true;
     }
     return false;
-  }
+  };
+
   _orientationDidChange = orientation => {
-    this._setFullScreen(['LANDSCAPE-LEFT', 'LANDSCAPE-RIGHT'].includes(orientation));
+    this._setFullScreen(
+      ["LANDSCAPE-LEFT", "LANDSCAPE-RIGHT"].includes(orientation)
+    );
   };
 
   _renderTopRight = ({ subtitles }) => {
@@ -450,6 +477,29 @@ class VideoPlayer extends React.Component<Props, State> {
     this.setState({ playState: PAUSED });
   };
 
+  _onSingleTap = event => {
+    // console.log("single", event.nativeEvent);
+    if (event.nativeEvent.state === GState.ACTIVE) {
+      this.toggleControls();
+    }
+  };
+
+  _onDoubleTapRight = event => {
+    console.log("double", event.nativeEvent);
+    if (event.nativeEvent.state === GState.ACTIVE) {
+      const { currentTime } = this.state;
+      this.player.seek(currentTime + 10);
+    }
+  };
+
+  _onDoubleTapLeft = event => {
+    console.log("double", event.nativeEvent);
+    if (event.nativeEvent.state === GState.ACTIVE) {
+      const { currentTime } = this.state;
+      this.player.seek(currentTime - 10);
+    }
+  };
+
   render() {
     const {
       style,
@@ -460,6 +510,7 @@ class VideoPlayer extends React.Component<Props, State> {
       renderTopLeft,
       renderLoading,
       renderError,
+      onProgress,
       ...rest
     } = this.props;
     const {
@@ -467,7 +518,6 @@ class VideoPlayer extends React.Component<Props, State> {
       selectedVideoTrackHeight,
       currentTime,
       seekableDuration,
-      onProgress,
       source,
       playState,
       show_video,
@@ -532,12 +582,38 @@ class VideoPlayer extends React.Component<Props, State> {
               onError={this._handleError}
             />
           )}
-          <TouchableWithoutFeedback
+          {/* <TouchableWithoutFeedback
             style={StyleSheet.absoluteFill}
             onPress={() => this.toggleControls()}
-          >
-            <View style={[StyleSheet.absoluteFillObject]} />
-          </TouchableWithoutFeedback>
+          > */}
+          <View style={StyleSheet.absoluteFill}>
+            <TapGestureHandler
+              onHandlerStateChange={this._onSingleTap}
+              waitFor={[this._doubleTapRightRef, this._doubleTapLeftRef]}
+            >
+              <Reanimated.View style={{ flex: 1, flexDirection: "row" }}>
+                {/* <Reanimated.View stlye={{ flex: 1 }}> */}
+                <TapGestureHandler
+                  onHandlerStateChange={this._onDoubleTapRight}
+                  ref={this._doubleTapRightRef}
+                  numberOfTaps={2}
+                >
+                  <View style={{ height: "100%", flex: 1 }} />
+                </TapGestureHandler>
+                <View style={{ flex: 1 }} />
+                <TapGestureHandler
+                  onHandlerStateChange={this._onDoubleTapLeft}
+                  ref={this._doubleTapLeftRef}
+                  numberOfTaps={2}
+                >
+                  <View style={{ height: "100%", flex: 1 }} />
+                </TapGestureHandler>
+                {/* </Reanimated.View> */}
+              </Reanimated.View>
+            </TapGestureHandler>
+          </View>
+          {/* </TouchableWithoutFeedback> */}
+
           <View style={StyleSheet.absoluteFillObject}>
             <View
               style={{
@@ -604,8 +680,8 @@ class VideoPlayer extends React.Component<Props, State> {
                     ) : playState === ERROR && renderError ? (
                       renderError()
                     ) : (
-                            this._renderError()
-                          )}
+                      this._renderError()
+                    )}
                   </Animated.View>
                 </View>
               </View>
