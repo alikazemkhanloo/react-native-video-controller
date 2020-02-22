@@ -70,23 +70,23 @@ type Props = {
    * PLAY to PAUSE.
    */
   renderPlayPause?: (typeof Animated.Value) => React.Node,
-  /**
-   * render component for the top right
-   */
-  renderTopRight: State => React.Node,
-  /**
-   * render component for the top left
-   */
-  renderTopLeft: State => React.Node,
-  /**
-   * render component for loading
-   */
-  renderLoading?: () => React.Node,
-  /**
-   * render component for error
-   */
-  renderError: () => React.Node,
-  bottom: State => React.Node
+    /**
+     * render component for the top right
+     */
+    renderTopRight: State => React.Node,
+      /**
+       * render component for the top left
+       */
+      renderTopLeft: State => React.Node,
+        /**
+         * render component for loading
+         */
+        renderLoading ?: () => React.Node,
+        /**
+         * render component for error
+         */
+        renderError: () => React.Node,
+          bottom: State => React.Node
 };
 /**
  * The main component to play video with default configs.
@@ -251,7 +251,7 @@ class VideoPlayer extends React.Component<Props, State> {
     Orientation.lockToPortrait();
     Orientation.unlockAllOrientations();
     this._backHandler.remove()
-    
+
   }
 
   _handleBackPress = () => {
@@ -263,7 +263,7 @@ class VideoPlayer extends React.Component<Props, State> {
     return false;
   }
   _orientationDidChange = orientation => {
-    this._setFullScreen(['LANDSCAPE-LEFT','LANDSCAPE-RIGHT'].includes(orientation));
+    this._setFullScreen(['LANDSCAPE-LEFT', 'LANDSCAPE-RIGHT'].includes(orientation));
   };
 
   _renderTopRight = ({ subtitles }) => {
@@ -604,8 +604,8 @@ class VideoPlayer extends React.Component<Props, State> {
                     ) : playState === ERROR && renderError ? (
                       renderError()
                     ) : (
-                      this._renderError()
-                    )}
+                            this._renderError()
+                          )}
                   </Animated.View>
                 </View>
               </View>
@@ -629,7 +629,7 @@ class VideoPlayer extends React.Component<Props, State> {
                     {VideoPlayer.secondToTime(currentTime)}
                   </Text>
                   <Slider
-                    style={{ flex: 1, marginHorizontal:5 }}
+                    style={{ flex: 1, marginHorizontal: 5 }}
                     minimumTrackTintColor="#fff"
                     thumbTintColor="#fff"
                     ballon={value => {
