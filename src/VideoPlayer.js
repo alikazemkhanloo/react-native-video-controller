@@ -16,7 +16,7 @@ import {
 import Video from "react-native-video";
 // import Slider from "@react-native-community/slider";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import Orientation from "react-native-orientation";
+import Orientation from "react-native-orientation-locker";
 import Reanimated from "react-native-reanimated";
 import Slider from "react-native-reanimated-slider";
 import { PAUSED, PLAYING, LOADING, ERROR } from "./PlayState";
@@ -246,10 +246,13 @@ class VideoPlayer extends React.Component<Props, State> {
 
   componentWillUnmount() {
     Orientation.removeOrientationListener(this._orientationDidChange);
+    Orientation.lockToPortrait();
+    Orientation.unlockAllOrientations();
+    
   }
 
   _orientationDidChange = orientation => {
-    this._setFullScreen(orientation === "LANDSCAPE");
+    this._setFullScreen(['LANDSCAPE-LEFT','LANDSCAPE-RIGHT'].includes(orientation));
   };
 
   _renderTopRight = ({ subtitles }) => {
