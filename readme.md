@@ -21,9 +21,11 @@ There are two controller for the playing the video, but they are not customizabl
   
 # Screen shots
 
-<div><img src="./docs/images/sc.jpeg" width=500/>
-<img src="./docs/images/sc2.jpeg" width=300/>
-<img src="./docs/images/sc3.jpeg" width=300/></div>
+<div>
+  <img src="./docs/images/sc2.jpeg" width=300/>
+  <img src="./docs/images/sc3.jpeg" width=300/>
+  <img src="./docs/images/sc.jpeg" width=500/>
+</div>
 
 <!-- [![screenshot](docs/images/sc.jpeg)](docs/images/sc.jpeg)
 [![screenshot](docs/images/sc2.jpeg)](docs/images/sc2.jpeg)
