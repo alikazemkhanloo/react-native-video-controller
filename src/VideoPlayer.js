@@ -10,6 +10,7 @@ import {
   I18nManager,
   TouchableWithoutFeedback,
   Animated,
+  BackHandler,
   Dimensions,
   ImageBackground
 } from "react-native";
@@ -242,15 +243,25 @@ class VideoPlayer extends React.Component<Props, State> {
 
   componentDidMount() {
     Orientation.addOrientationListener(this._orientationDidChange);
+    this._backHandler = BackHandler.addEventListener('hardwareBackPress', this._handleBackPress);
   }
 
   componentWillUnmount() {
     Orientation.removeOrientationListener(this._orientationDidChange);
     Orientation.lockToPortrait();
     Orientation.unlockAllOrientations();
+    this._backHandler.remove()
     
   }
 
+  _handleBackPress = () => {
+    const { fullscreen } = this.state;
+    if (fullscreen) {
+      this.toggleFullScreen();
+      return true;
+    }
+    return false;
+  }
   _orientationDidChange = orientation => {
     this._setFullScreen(['LANDSCAPE-LEFT','LANDSCAPE-RIGHT'].includes(orientation));
   };
