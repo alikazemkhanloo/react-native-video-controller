@@ -18,7 +18,7 @@ import Video from "react-native-video";
 // import Slider from "@react-native-community/slider";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Orientation from "react-native-orientation-locker";
-import Reanimated from "react-native-reanimated";
+import Reanimated, { Easing } from "react-native-reanimated";
 import {
   TapGestureHandler,
   State as GState
@@ -28,6 +28,23 @@ import { PAUSED, PLAYING, LOADING, ERROR } from "./PlayState";
 import PlayPause from "./PlayPause";
 import Menu from "./Menu";
 import Loading from "./Loading";
+
+const {
+  Value,
+  set,
+  cond,
+  block,
+  startClock,
+  and,
+  timing,
+  clockRunning,
+  event,
+  interpolate,
+  Clock,
+  eq,
+  stopClock,
+  debug
+} = Reanimated;
 
 const styles = StyleSheet.create({
   topCorner: {
@@ -45,6 +62,46 @@ function getSmallAxis() {
   const { width, height } = Dimensions.get("screen");
   const s = width < height ? width : height;
   return s;
+}
+
+function runTiming(clock, value, dest) {
+  const state = {
+    finished: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+    frameTime: new Value(0)
+  };
+
+  const config = {
+    duration: 300,
+    toValue: new Value(0),
+    easing: Easing.inOut(Easing.ease)
+  };
+
+  return block([
+    cond(
+      clockRunning(clock),
+      [
+        // if the clock is already running we update the toValue, in case a new dest has been passed in
+        set(config.toValue, dest)
+      ],
+      [
+        // if the clock isn't running we reset all the animation params and start the clock
+        set(state.finished, 0),
+        set(state.time, 0),
+        set(state.position, value),
+        set(state.frameTime, 0),
+        set(config.toValue, dest),
+        startClock(clock)
+      ]
+    ),
+    // we run the step here that is going to update position
+    timing(clock, state, config),
+    // if the animation is over we stop the clock
+    cond(state.finished, debug("stop clock", stopClock(clock))),
+    // we made the block return the updated position
+    state.position
+  ]);
 }
 
 export type State = {
@@ -212,6 +269,9 @@ class VideoPlayer extends React.Component<Props, State> {
     return output;
   }
 
+  show_controls_progress = new Value(1);
+  clock = new Clock();
+
   constructor(props) {
     super(props);
     // firebase.admob().openDebugMenu();
@@ -223,28 +283,28 @@ class VideoPlayer extends React.Component<Props, State> {
     this.playableDuration = new Reanimated.Value(0);
     this.seekableDuration = new Reanimated.Value(0);
 
-    this.show_controls_progress = new Animated.Value(1);
-    this.topbar_translate = this.show_controls_progress.interpolate({
+    this.topbar_translate = interpolate(this.show_controls_progress, {
       inputRange: [0, 1],
       outputRange: [-50, 0]
     });
-    this.seekbar_translate = this.show_controls_progress.interpolate({
+    this.seekbar_translate = interpolate(this.show_controls_progress, {
       inputRange: [0, 1],
       outputRange: [50, 0]
     });
-    this.translate_play = this.show_controls_progress.interpolate({
+    this.translate_play = interpolate(this.show_controls_progress, {
       inputRange: [0, 0.000001, 1],
       outputRange: [-99999999, 0, 0]
     });
-    this.hideControlsAnimation = Animated.timing(this.show_controls_progress, {
-      useNativeDriver: true,
-      toValue: 0
-    });
+    this.isControllVisible = new Value(1);
+    // this.hideControlsAnimation = Animated.timing(this.show_controls_progress, {
+    //   useNativeDriver: true,
+    //   toValue: 0
+    // });
 
-    this.showControlsAnimation = Animated.timing(this.show_controls_progress, {
-      useNativeDriver: true,
-      toValue: 1
-    });
+    // this.showControlsAnimation = Animated.timing(this.show_controls_progress, {
+    //   useNativeDriver: true,
+    //   toValue: 1
+    // });
 
     this.state = {
       source: props.source,
@@ -358,13 +418,13 @@ class VideoPlayer extends React.Component<Props, State> {
 
   _handleLoadStart = () => {
     clearTimeout(this.timeout);
-    this.showControlsAnimation.start();
+    // this.showControlsAnimation.start();
     this.setState({ playState: LOADING });
   };
 
   _handleError = () => {
     clearTimeout(this.timeout);
-    this.showControlsAnimation.start();
+    // this.showControlsAnimation.start();
     this.setState({ playState: ERROR });
   };
 
@@ -449,12 +509,12 @@ class VideoPlayer extends React.Component<Props, State> {
   toggleControls = () => {
     const { controls_hidden, playState } = this.state;
     if (controls_hidden) {
-      this.hideControlsAnimation.stop();
-      this.showControlsAnimation.start();
+      // this.hideControlsAnimation.stop();
+      // this.showControlsAnimation.start();
       playState === PLAYING && this.hide_controls_with_timeout();
     } else if (playState === PLAYING) {
-      this.showControlsAnimation.stop();
-      this.hideControlsAnimation.start();
+      // this.showControlsAnimation.stop();
+      // this.hideControlsAnimation.start();
       clearTimeout(this.timeout);
     }
     this.setState({ controls_hidden: !controls_hidden });
@@ -467,25 +527,51 @@ class VideoPlayer extends React.Component<Props, State> {
     // const { playState } = this.state;
     this.timeout = setTimeout(() => {
       this.setState({ controls_hidden: true });
-      this.hideControlsAnimation.start();
+      // this.hideControlsAnimation.start();
     }, 5000);
   };
 
   _onEnd = () => {
     this.player.seek(0);
-    this.showControlsAnimation.start();
+    // this.showControlsAnimation.start();
     this.setState({ playState: PAUSED });
   };
 
-  _onSingleTap = event => {
-    // console.log("single", event.nativeEvent);
-    if (event.nativeEvent.state === GState.ACTIVE) {
-      this.toggleControls();
-    }
+  // _onSingleTap = ({
+
+  // })
+
+  // _onSingleTap = ({ nativeEvent }) => {
+  //   console.log("n", nativeEvent);
+  // };
+  _onSingleTap = ({ nativeEvent }) => {
+    console.log("asdf", nativeEvent);
+    return block([
+      debug("start", this.isControllVisible),
+      cond(
+        eq(nativeEvent.state, GState.ACTIVE),
+        cond(
+          eq(this.isControllVisible, 1),
+          [
+            set(this.isControllVisible, 0),
+            set(
+              this.show_controls_progress,
+              runTiming(this.clock, this.show_controls_progress, 0)
+            )
+          ],
+          [
+            set(this.isControllVisible, 1),
+            set(
+              this.show_controls_progress,
+              runTiming(this.clock, this.show_controls_progress, 1)
+            )
+          ]
+        )
+      )
+    ]);
   };
 
   _onDoubleTapRight = event => {
-    console.log("double", event.nativeEvent);
     if (event.nativeEvent.state === GState.ACTIVE) {
       const { currentTime } = this.state;
       this.player.seek(currentTime + 10);
@@ -493,7 +579,6 @@ class VideoPlayer extends React.Component<Props, State> {
   };
 
   _onDoubleTapLeft = event => {
-    console.log("double", event.nativeEvent);
     if (event.nativeEvent.state === GState.ACTIVE) {
       const { currentTime } = this.state;
       this.player.seek(currentTime - 10);
@@ -588,7 +673,7 @@ class VideoPlayer extends React.Component<Props, State> {
           > */}
           <View style={StyleSheet.absoluteFill}>
             <TapGestureHandler
-              onHandlerStateChange={this._onSingleTap}
+              onHandlerStateChange={this._onSingleTap.bind(this)}
               waitFor={[this._doubleTapRightRef, this._doubleTapLeftRef]}
             >
               <Reanimated.View style={{ flex: 1, flexDirection: "row" }}>
@@ -621,7 +706,7 @@ class VideoPlayer extends React.Component<Props, State> {
                 justifyContent: "space-between"
               }}
             >
-              <Animated.View
+              <Reanimated.View
                 key="top"
                 style={{
                   opacity: this.show_controls_progress,
@@ -656,7 +741,7 @@ class VideoPlayer extends React.Component<Props, State> {
                       : this._renderTopRight(this.state)}
                   </View>
                 </ImageBackground>
-              </Animated.View>
+              </Reanimated.View>
 
               <View
                 style={{
@@ -665,7 +750,7 @@ class VideoPlayer extends React.Component<Props, State> {
                 }}
               >
                 <View>
-                  <Animated.View
+                  <Reanimated.View
                     style={{
                       opacity: this.show_controls_progress,
                       transform: [{ translateY: this.translate_play }]
@@ -682,10 +767,10 @@ class VideoPlayer extends React.Component<Props, State> {
                     ) : (
                       this._renderError()
                     )}
-                  </Animated.View>
+                  </Reanimated.View>
                 </View>
               </View>
-              <Animated.View
+              <Reanimated.View
                 style={{
                   opacity: this.show_controls_progress,
                   transform: [{ translateY: this.seekbar_translate }]
@@ -730,7 +815,7 @@ class VideoPlayer extends React.Component<Props, State> {
                     />
                   </TouchableWithoutFeedback>
                 </ImageBackground>
-              </Animated.View>
+              </Reanimated.View>
             </View>
           </View>
         </View>
