@@ -1,6 +1,6 @@
 {
   "name": "react-native-video-controller",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "a simple yet customizable controller for react-native-video",
   "main": "index.js",
   "scripts": {
