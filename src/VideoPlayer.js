@@ -271,7 +271,20 @@ class VideoPlayer extends React.Component<Props, State> {
 
   show_controls_progress = new Value(1);
   clock = new Clock();
-
+  isControllVisible = new Value(1);
+  singleTapState = new Value(0);
+  opacity = block([
+    debug("state", this.singleTapState),
+    cond(
+      this.singleTapState,
+      GState.BEGIN,
+      cond(
+        eq(this.isControllVisible, 1),
+        [set(this.isControllVisible, 0), 0],
+        [set(this.isControllVisible, 1), 1]
+      )
+    )
+  ]);
   constructor(props) {
     super(props);
     // firebase.admob().openDebugMenu();
@@ -295,7 +308,6 @@ class VideoPlayer extends React.Component<Props, State> {
       inputRange: [0, 0.000001, 1],
       outputRange: [-99999999, 0, 0]
     });
-    this.isControllVisible = new Value(1);
     // this.hideControlsAnimation = Animated.timing(this.show_controls_progress, {
     //   useNativeDriver: true,
     //   toValue: 0
@@ -542,34 +554,38 @@ class VideoPlayer extends React.Component<Props, State> {
   // })
 
   // _onSingleTap = ({ nativeEvent }) => {
-  //   console.log("n", nativeEvent);
+  //   console.log("state", nativeEvent.state, nativeEvent.oldState);
+  //   return block([
+  //     debug("is", this.isControllVisible),
+  //     cond(
+  //       eq(nativeEvent.state, GState.ACTIVE),
+  //       cond(
+  //         eq(this.isControllVisible, 1),
+  //         [
+  //           set(this.isControllVisible, 0),
+  //           set(
+  //             this.show_controls_progress,
+  //             runTiming(this.clock, this.show_controls_progress, 0)
+  //           )
+  //         ]
+  //         // [
+  //         //   set(this.isControllVisible, 1),
+  //         //   set(
+  //         //     this.show_controls_progress,
+  //         //     runTiming(this.clock, this.show_controls_progress, 1)
+  //         //   )
+  //         // ]
+  //       )
+  //     )
+  //   ]);
   // };
-  _onSingleTap = ({ nativeEvent }) => {
-    console.log("asdf", nativeEvent);
-    return block([
-      debug("start", this.isControllVisible),
-      cond(
-        eq(nativeEvent.state, GState.ACTIVE),
-        cond(
-          eq(this.isControllVisible, 1),
-          [
-            set(this.isControllVisible, 0),
-            set(
-              this.show_controls_progress,
-              runTiming(this.clock, this.show_controls_progress, 0)
-            )
-          ],
-          [
-            set(this.isControllVisible, 1),
-            set(
-              this.show_controls_progress,
-              runTiming(this.clock, this.show_controls_progress, 1)
-            )
-          ]
-        )
-      )
-    ]);
-  };
+  _onSingleTap = event([
+    {
+      nativeEvent: {
+        state: this.singleTapState
+      }
+    }
+  ]);
 
   _onDoubleTapRight = event => {
     if (event.nativeEvent.state === GState.ACTIVE) {
@@ -673,7 +689,7 @@ class VideoPlayer extends React.Component<Props, State> {
           > */}
           <View style={StyleSheet.absoluteFill}>
             <TapGestureHandler
-              onHandlerStateChange={this._onSingleTap.bind(this)}
+              onHandlerStateChange={this._onSingleTap}
               waitFor={[this._doubleTapRightRef, this._doubleTapLeftRef]}
             >
               <Reanimated.View style={{ flex: 1, flexDirection: "row" }}>
@@ -685,7 +701,7 @@ class VideoPlayer extends React.Component<Props, State> {
                 >
                   <View style={{ height: "100%", flex: 1 }} />
                 </TapGestureHandler>
-                <View style={{ flex: 1 }} />
+                <View style={{ flex: 2 }} />
                 <TapGestureHandler
                   onHandlerStateChange={this._onDoubleTapLeft}
                   ref={this._doubleTapLeftRef}
@@ -709,7 +725,7 @@ class VideoPlayer extends React.Component<Props, State> {
               <Reanimated.View
                 key="top"
                 style={{
-                  opacity: this.show_controls_progress,
+                  opacity: this.opacity,
                   transform: [{ translateY: this.topbar_translate }],
                   flexDirection: "row",
                   justifyContent: "space-between"
