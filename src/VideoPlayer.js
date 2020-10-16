@@ -163,6 +163,22 @@ type Props = {
     seekableDuration: number
   }) => void,
 
+  /**
+   * color of the ripple when double tapped on either side
+   * of the video, default  '#5555'
+   */
+  rippleColor: string,
+
+  /**
+   * component inside the forward ripple
+   */
+  forwardRippleComponent : React.Node,
+
+  /**
+   * component inside the rewind ripple
+   */
+  rewindRippleComponent : React.Node,
+
   bottom: State => React.Node
 };
 /**
@@ -295,7 +311,8 @@ class VideoPlayer extends React.Component<Props, State> {
     this.currentTime = new Reanimated.Value(0);
     this.playableDuration = new Reanimated.Value(0);
     this.seekableDuration = new Reanimated.Value(0);
-
+    this.rewindOpacity = new Animated.Value(0)
+    this.forwardOpacity = new Animated.Value(0)
     this.topbar_translate = this.show_controls_progress.interpolate({
       inputRange: [0, 1],
       outputRange: [-50, 0]
@@ -529,7 +546,7 @@ class VideoPlayer extends React.Component<Props, State> {
       this.hideControlsAnimation.stop();
       this.showControlsAnimation.start();
       playState === PLAYING && this.hide_controls_with_timeout();
-    } else if (playState === PLAYING) {
+    } else {
       this.showControlsAnimation.stop();
       this.hideControlsAnimation.start();
       clearTimeout(this.timeout);
@@ -584,14 +601,31 @@ class VideoPlayer extends React.Component<Props, State> {
   //     )
   //   ]);
   // };
+
   _onSingleTap = event => {
     if (event.nativeEvent.state === GState.ACTIVE) {
       this.toggleControls();
     }
   };
 
+  _toggleForwardRipple = (animatedValue)=>{
+    Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true
+      }).start();
+      setTimeout(() => {
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true
+        }).start();
+      }, 1000);
+  }
+
   _onDoubleTapRight = event => {
     if (event.nativeEvent.state === GState.ACTIVE) {
+      this._toggleForwardRipple(this.forwardOpacity)
       const { currentTime } = this.state;
       this.player.seek(currentTime + 10);
     }
@@ -599,6 +633,7 @@ class VideoPlayer extends React.Component<Props, State> {
 
   _onDoubleTapLeft = event => {
     if (event.nativeEvent.state === GState.ACTIVE) {
+      this._toggleForwardRipple(this.rewindOpacity)
       const { currentTime } = this.state;
       this.player.seek(currentTime - 10);
     }
@@ -614,6 +649,9 @@ class VideoPlayer extends React.Component<Props, State> {
       renderTopLeft,
       renderLoading,
       renderError,
+      rippleColor,
+      forwardRippleComponent,
+      rewindRippleComponent,
       onProgress,
       ...rest
     } = this.props;
@@ -633,7 +671,7 @@ class VideoPlayer extends React.Component<Props, State> {
       <View style={{ flex: 1 }}>
         <View
           style={[
-            { backgroundColor: "#000" },
+            { backgroundColor: "#000" ,overflow:'hidden'},
             fullscreen
               ? StyleSheet.absoluteFillObject
               : [{ height: playerHeight }, style]
@@ -698,19 +736,57 @@ class VideoPlayer extends React.Component<Props, State> {
               <Animated.View style={{ flex: 1, flexDirection: "row" }}>
                 {/* <Animated.View stlye={{ flex: 1 }}> */}
                 <TapGestureHandler
-                  onHandlerStateChange={this._onDoubleTapRight}
-                  ref={this._doubleTapRightRef}
+                  onHandlerStateChange={this._onDoubleTapLeft}
+                  ref={this._doubleTapLeftRef}
+                  maxDelayMs={150}
                   numberOfTaps={2}
                 >
-                  <View style={{ height: "100%", flex: 1 }} />
+                  <View style={{ height: "100%", flex: 1 }} >
+                    <Animated.View style={{
+                      position: 'absolute',
+                      left:'-100%',
+                      aspectRatio:1,
+                      height:'100%',
+                      borderRadius:200,
+                      opacity: this.rewindOpacity,
+                      backgroundColor: rippleColor || '#5555', 
+                      transform:[
+                        {scale:1.5},
+                      ] ,
+                      justifyContent:'center',
+                      alignItems:'flex-end'
+                      
+                    }} > 
+                    {rewindRippleComponent || <Text style={{marginEnd:50}}> -10s </Text>}
+                    </Animated.View>
+                  </View>
                 </TapGestureHandler>
                 <View style={{ flex: 2 }} />
                 <TapGestureHandler
-                  onHandlerStateChange={this._onDoubleTapLeft}
-                  ref={this._doubleTapLeftRef}
+                  onHandlerStateChange={this._onDoubleTapRight}
+                  ref={this._doubleTapRightRef}
+                  maxDelayMs={150}
                   numberOfTaps={2}
                 >
-                  <View style={{ height: "100%", flex: 1 }} />
+                  <View style={{ height: "100%", flex: 1 }} >
+                    <Animated.View style={{
+                      position: 'absolute',
+                      left:0,
+                      aspectRatio:1,
+                      height:'100%',
+                      borderRadius:200,
+                      opacity: this.forwardOpacity,
+                      backgroundColor: rippleColor || '#5555', 
+                      transform:[
+                        {scale:1.5},
+                      ] ,
+                      justifyContent:'center',
+                      alignItems:'flex-start'
+                      
+                    }} > 
+                    {forwardRippleComponent || <Text style={{marginStart:50}}> +10s </Text>}
+                    </Animated.View>
+                  </View>
                 </TapGestureHandler>
                 {/* </Animated.View> */}
               </Animated.View>
