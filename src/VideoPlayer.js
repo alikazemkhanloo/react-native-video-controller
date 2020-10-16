@@ -21,6 +21,7 @@ import Orientation from "react-native-orientation-locker";
 import Reanimated, { Easing } from "react-native-reanimated";
 import {
   TapGestureHandler,
+  PanGestureHandler,
   State as GState
 } from "react-native-gesture-handler";
 import Slider from "react-native-reanimated-slider";
@@ -172,12 +173,22 @@ type Props = {
   /**
    * component inside the forward ripple
    */
-  forwardRippleComponent : React.Node,
+  forwardRippleComponent: React.Node,
 
   /**
    * component inside the rewind ripple
    */
-  rewindRippleComponent : React.Node,
+  rewindRippleComponent: React.Node,
+
+  /**
+   * on swipe in right side of the screen
+   */
+  onSwipeRightHalf: (event) => void,
+
+  /**
+   * on swipe in left side of the screen
+   */
+  onSwipeLeftHalf: (event) => void,
 
   bottom: State => React.Node
 };
@@ -307,6 +318,7 @@ class VideoPlayer extends React.Component<Props, State> {
     const initialOrientation = Orientation.getInitialOrientation();
     this._doubleTapRightRef = React.createRef();
     this._doubleTapLeftRef = React.createRef();
+    this._singleTapRef = React.createRef();
     this.playpause = new Animated.Value(0.5);
     this.currentTime = new Reanimated.Value(0);
     this.playableDuration = new Reanimated.Value(0);
@@ -442,7 +454,6 @@ class VideoPlayer extends React.Component<Props, State> {
 
   _handleOnLoad = payload => {
     const { textTracks, videoTracks } = payload;
-    console.log('p',payload);
     const resolutions = videoTracks && videoTracks.map(i => i.height);
     // resolutions.unshift(0);
 
@@ -639,6 +650,7 @@ class VideoPlayer extends React.Component<Props, State> {
     }
   };
 
+
   render() {
     const {
       style,
@@ -652,6 +664,8 @@ class VideoPlayer extends React.Component<Props, State> {
       rippleColor,
       forwardRippleComponent,
       rewindRippleComponent,
+      onSwipeLeftHalf,
+      onSwipeRightHalf,
       onProgress,
       ...rest
     } = this.props;
@@ -731,67 +745,80 @@ class VideoPlayer extends React.Component<Props, State> {
           <View style={StyleSheet.absoluteFill}>
             <TapGestureHandler
               onHandlerStateChange={this._onSingleTap}
+              ref={this._singleTapRef}
               waitFor={[this._doubleTapRightRef, this._doubleTapLeftRef]}
             >
               <Animated.View style={{ flex: 1, flexDirection: "row" }}>
                 {/* <Animated.View stlye={{ flex: 1 }}> */}
-                <TapGestureHandler
-                  onHandlerStateChange={this._onDoubleTapLeft}
-                  ref={this._doubleTapLeftRef}
-                  maxDelayMs={150}
-                  numberOfTaps={2}
-                >
-                  <View style={{ height: "100%", flex: 1 }} >
-                    <Animated.View style={{
-                      position: 'absolute',
-                      left:'-100%',
-                      aspectRatio:1,
-                      height:'100%',
-                      borderRadius:200,
-                      opacity: this.rewindOpacity,
-                      backgroundColor: rippleColor || '#5555', 
-                      transform:[
-                        {scale:1.5},
-                      ] ,
-                      justifyContent:'center',
-                      alignItems:'flex-end'
-                      
-                    }} > 
-                    {rewindRippleComponent || <Text style={{marginEnd:50}}> -10s </Text>}
-                    </Animated.View>
-                  </View>
-                </TapGestureHandler>
-                <View style={{ flex: 2 }} />
-                <TapGestureHandler
-                  onHandlerStateChange={this._onDoubleTapRight}
-                  ref={this._doubleTapRightRef}
-                  maxDelayMs={150}
-                  numberOfTaps={2}
-                >
-                  <View style={{ height: "100%", flex: 1 }} >
-                    <Animated.View style={{
-                      position: 'absolute',
-                      left:0,
-                      aspectRatio:1,
-                      height:'100%',
-                      borderRadius:200,
-                      opacity: this.forwardOpacity,
-                      backgroundColor: rippleColor || '#5555', 
-                      transform:[
-                        {scale:1.5},
-                      ] ,
-                      justifyContent:'center',
-                      alignItems:'flex-start'
-                      
-                    }} > 
-                    {forwardRippleComponent || <Text style={{marginStart:50}}> +10s </Text>}
-                    </Animated.View>
-                  </View>
-                </TapGestureHandler>
+                <PanGestureHandler waitFor={[this._singleTapRef,this._doubleTapLeftRef]} onGestureEvent={this.onSwipeLeftHalf}> 
+                  <Animated.View style={{flex:1, flexDirection:'row'}}>
+                    <TapGestureHandler
+                      onHandlerStateChange={this._onDoubleTapLeft}
+                      ref={this._doubleTapLeftRef}
+                      maxDelayMs={150}
+                      numberOfTaps={2}
+                    >
+                      <View style={{ height: "100%", flex: 1}} >
+                        <Animated.View style={{
+                          position: 'absolute',
+                          left:'-100%',
+                          aspectRatio:1,
+                          height:'100%',
+                          borderRadius:200,
+                          opacity: this.rewindOpacity,
+                          backgroundColor: rippleColor || '#5555', 
+                          transform:[
+                            {scale:1.5},
+                          ] ,
+                          justifyContent:'center',
+                          alignItems:'flex-end'
+                          
+                        }} > 
+                        {rewindRippleComponent || <Text style={{marginEnd:50}}> -10s </Text>}
+                        </Animated.View>
+                      </View>
+                    </TapGestureHandler>
+                    <View style={{flex:1}} />
+                  </Animated.View>
+                </PanGestureHandler>
+                <PanGestureHandler waitFor={[this._singleTapRef,this._doubleTapRightRef]} onGestureEvent={this.onSwipeRightHalf}>
+                  <Animated.View style={{flex:1, flexDirection:'row'}}>
+                    <View style={{flex:1}} />
+                    <TapGestureHandler
+                      onHandlerStateChange={this._onDoubleTapRight}
+                      ref={this._doubleTapRightRef}
+                      maxDelayMs={150}
+                      numberOfTaps={2}
+                    >
+                      <View style={{ height: "100%", flex: 1}} >
+                        <Animated.View style={{
+                          position: 'absolute',
+                          left:0,
+                          aspectRatio:1,
+                          height:'100%',
+                          borderRadius:200,
+                          opacity: this.forwardOpacity,
+                          backgroundColor: rippleColor || '#5555', 
+                          transform:[
+                            {scale:1.5},
+                          ] ,
+                          justifyContent:'center',
+                          alignItems:'flex-start'
+                          
+                        }} > 
+                        {forwardRippleComponent || <Text style={{marginStart:50}}> +10s </Text>}
+                        </Animated.View>
+                      </View>
+                    </TapGestureHandler>
+                  </Animated.View>
+                </PanGestureHandler>
+                
+               
                 {/* </Animated.View> */}
               </Animated.View>
             </TapGestureHandler>
           </View>
+         
           {/* </TouchableWithoutFeedback> */}
 
           <View style={StyleSheet.absoluteFillObject}>
