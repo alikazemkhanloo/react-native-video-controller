@@ -366,24 +366,28 @@ class VideoPlayer extends React.Component<Props, State> {
   };
 
   _renderTopRight = ({ subtitles }) => {
-    const filtered = subtitles.filter(i => !!i.language);
-    const items = [{ title: "خاموش" }, ...filtered];
-    return <Menu title="زیرنویس" onItemPress={this.setSub} items={items} />;
+    if(subtitles){
+      const filtered = subtitles.filter(i => !!i.language);
+      const items = [{ title: "خاموش" }, ...filtered];
+      return <Menu title="زیرنویس" onItemPress={this.setSub} items={items} />;
+    }
   };
 
   _renderTopLeft = ({ resolutions }) => {
-    const items = resolutions.map(i => ({
-      title: String(i),
-      value: i
-    }));
-    items.unshift({ title: "خودکار", value: 0 });
-    return (
-      <Menu
-        title="کیفیت"
-        onItemPress={({ value }) => this.setResolution(value)}
-        items={items}
-      />
-    );
+    if(resolutions){
+      const items = resolutions.map(i => ({
+        title: String(i),
+        value: i
+      }));
+      items.unshift({ title: "خودکار", value: 0 });
+      return (
+        <Menu
+          title="کیفیت"
+          onItemPress={({ value }) => this.setResolution(value)}
+          items={items}
+        />
+      );
+    }
   };
 
   _renderError = () => (
@@ -421,7 +425,8 @@ class VideoPlayer extends React.Component<Props, State> {
 
   _handleOnLoad = payload => {
     const { textTracks, videoTracks } = payload;
-    const resolutions = videoTracks.map(i => i.height);
+    console.log('p',payload);
+    const resolutions = videoTracks && videoTracks.map(i => i.height);
     // resolutions.unshift(0);
 
     this.setState({ resolutions, subtitles: textTracks, playState: PLAYING });
