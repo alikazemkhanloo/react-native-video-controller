@@ -21,7 +21,7 @@ jobs:
           cd docs
           react-docgen ../src/*
           react-docgen ../src/* | ../buildDocs.sh  
-      - name: push to master
+      - name: Push to Master
         run: |
           git config --global user.name 'Ali Kazemkhanloo'
           git config --global user.email 'alikazemkhanloo@gmail.com'
