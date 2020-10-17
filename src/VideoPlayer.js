@@ -258,7 +258,7 @@ type Props = {
  *
  *
  */
-class VideoPlayer extends React.Component<Props, State> {
+export default class VideoPlayer extends React.Component<Props, State> {
   _menu = {};
 
   static getDerivedStateFromProps(props: Props, state: State) {
@@ -948,4 +948,5 @@ class VideoPlayer extends React.Component<Props, State> {
   }
 }
 
-export default VideoPlayer;
+// export default VideoPlayer;
+// 
