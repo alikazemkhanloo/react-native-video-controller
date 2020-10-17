@@ -250,7 +250,7 @@ type Props = {
  *
  * To access the underlying player's methods use `player` attribute, ie:
  * ```
- * this.videoplayer.player.seek(12)
+ * this.videoplayer.player.seek(100)
  * ```
  *
  *
