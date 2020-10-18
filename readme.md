@@ -36,7 +36,7 @@ this library depends on:
 
 * `react-native-reanimated` if using the default slider,no need if you have your own slider.
 * `react-native-gesture-handler` if using the default slider,no need if you have your own slider.
-* `react-native-orientation` to handle rotations.
+* `react-native-orientation-locker` to handle rotations.
 * `react-native-paper` to use the Menu component, no need if you have your own menu.
 * `react-native-video` to play videos.
   
